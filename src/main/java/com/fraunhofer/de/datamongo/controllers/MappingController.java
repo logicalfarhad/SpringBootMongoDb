@@ -2,38 +2,43 @@ package com.fraunhofer.de.datamongo.controllers;
 
 import com.fraunhofer.de.datamongo.models.Mapping;
 import com.fraunhofer.de.datamongo.repositories.MappingMongoRepository;
+import io.swagger.annotations.Api;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @RestController
-@RequestMapping(value = "/")
+@Api(value = "Swagger2DemoRestController", description = "REST APIs related to Student Entity!!!!")
+@RequestMapping("/api")
 public class MappingController {
 
     private final MappingMongoRepository _mappingMongoRepository;
 
     @Autowired
-    MappingController(MappingMongoRepository mappingMongoRepository) {
+    public MappingController(final MappingMongoRepository mappingMongoRepository) {
         this._mappingMongoRepository = mappingMongoRepository;
     }
 
-    @GetMapping(value = "/getall")
+    @GetMapping("/getAll")
     public ResponseEntity<List<Mapping>> getAllMapping() {
         var mappingList = _mappingMongoRepository.findAll();
+
         return new ResponseEntity<>(mappingList, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/{Id}")
+    @GetMapping("/getById/{Id}")
     public ResponseEntity<Mapping> getMappingById(@PathVariable("Id") String Id) {
         var mapping = _mappingMongoRepository.findById(Id);
         return mapping.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @PostMapping(value = "/save")
+    @PostMapping("/save")
     public ResponseEntity<Mapping> createMapping(@RequestBody Mapping mapping) {
         try {
             var _mapping = _mappingMongoRepository
@@ -41,7 +46,7 @@ public class MappingController {
                             mapping.getEntity(),
                             mapping.getType(),
                             mapping.getSource(),
-                            mapping.getID(),
+                            mapping.getKey(),
                             mapping.getOptions(),
                             mapping.getProlog(),
                             mapping.getPropertiesMap()));
@@ -51,25 +56,26 @@ public class MappingController {
         }
     }
 
-    @PutMapping(value = "/{Id}")
+    @PostMapping("/editById/{Id}")
     public ResponseEntity<Mapping> updateMapping(@PathVariable("Id") String Id, @RequestBody Mapping mapping) {
         var mappingData = _mappingMongoRepository.findById(Id);
 
         if (mappingData.isPresent()) {
             var _mapping = mappingData.get();
-            _mapping.setEntity(mapping.getEntity());
-            _mapping.setType(mapping.getType());
-            _mapping.setSource(mapping.getSource());
-            _mapping.setID(mapping.getID());
-            _mapping.setOptions(mapping.getOptions());
-            _mapping.setProlog(mapping.getProlog());
-            _mapping.setPropertiesMap(mapping.getPropertiesMap());
+            _mapping.setEntity(!Objects.equals(mapping.getEntity(), "") ? mapping.getEntity() : "");
+            _mapping.setType(!Objects.equals(mapping.getType(), "") ? mapping.getType() : "");
+            _mapping.setSource(!Objects.equals(mapping.getSource(), "") ? mapping.getSource() : "");
+            _mapping.setKey(!Objects.equals(mapping.getKey(), "") ? mapping.getKey() : "");
+            _mapping.setOptions(mapping.getOptions() == null ? null : mapping.getOptions());
+            _mapping.setProlog(mapping.getProlog() == null ? null : mapping.getProlog());
+            _mapping.setPropertiesMap(mapping.getPropertiesMap() == null ? null : mapping.getPropertiesMap());
+
             return new ResponseEntity<>(_mappingMongoRepository.save(_mapping), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping("/deleteAll")
     public ResponseEntity<HttpStatus> deleteAllMapping() {
         try {
             _mappingMongoRepository.deleteAll();
@@ -79,7 +85,7 @@ public class MappingController {
         }
     }
 
-    @DeleteMapping("/{Id}")
+    @DeleteMapping("/deleteById/{Id}")
     public ResponseEntity<HttpStatus> deleteMappingById(@PathVariable("Id") String Id) {
         try {
             var mapping = _mappingMongoRepository.findById(Id);

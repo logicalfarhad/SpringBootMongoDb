@@ -1,8 +1,12 @@
 package com.fraunhofer.de.datamongo.models;
 
 import lombok.*;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.FieldType;
+import org.springframework.data.mongodb.core.mapping.MongoId;
+
 import java.util.HashMap;
 
 
@@ -17,7 +21,7 @@ public class Mapping {
     private String entity;
     private String type;
     private String source;
-    private String ID;
+    private String key;
     private Option options;
     private HashMap<String,String> prolog;
     private HashMap<String,String> propertiesMap;
