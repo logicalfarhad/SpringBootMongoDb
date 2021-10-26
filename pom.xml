@@ -7,13 +7,13 @@
 	<version>0.0.1</version>
 	<packaging>jar</packaging>
 
-	<name>Squerall </name>
+	<name>Squerall Mapping</name>
 	<description>Originally developed by the Fraunhofer IAIS</description>
-	<url>https://www.dataspace-connector.io/</url>
+	<url>vocoreg.com/</url>
 	<inceptionYear>2021</inceptionYear>
 	<organization>
-		<name>Fraunhofer Institute for Software and Systems Engineering</name>
-		<url>https://www.isst.fraunhofer.de/</url>
+		<name>Fraunhofer Institute for Intelligent Analysis and Information Systems IAIS</name>
+		<url>https://www.iais.fraunhofer.de/</url>
 	</organization>
 	<licenses>
 		<license>
@@ -74,6 +74,11 @@
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-ui</artifactId>
 			<version>${springdoc.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>5.3</version>
 		</dependency>
 	</dependencies>
 
