@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 @RestController
@@ -53,6 +54,7 @@ public class MappingController {
             schema.setType(mapping.getType());
             schema.setEntity(mapping.getEntity());
             schema.setOptions(mapping.getOptions());
+            schema.setClas(mapping.getClas());
             schema.setPropertiesMap(mapping.getPropertiesMap());
             schema.setProlog(mapping.getProlog());
             schema.setKey(mapping.getKey());
@@ -86,6 +88,7 @@ public class MappingController {
                             mapping.getSource(),
                             mapping.getKey(),
                             mapping.getOptions(),
+                            mapping.getClas(),
                             mapping.getProlog(),
                             mapping.getPropertiesMap()));
             return new ResponseEntity<>(_mapping, HttpStatus.CREATED);
@@ -105,6 +108,7 @@ public class MappingController {
             _mapping.setSource(!Objects.equals(mapping.getSource(), "") ? mapping.getSource() : "");
             _mapping.setKey(!Objects.equals(mapping.getKey(), "") ? mapping.getKey() : "");
             _mapping.setOptions(mapping.getOptions() == null ? null : mapping.getOptions());
+            _mapping.setClas(mapping.getClas() == null ? null : mapping.getClas());
             _mapping.setProlog(mapping.getProlog() == null ? null : mapping.getProlog());
             _mapping.setPropertiesMap(mapping.getPropertiesMap() == null ? null : mapping.getPropertiesMap());
 
@@ -113,7 +117,7 @@ public class MappingController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @DeleteMapping(value = "/deleteAll",produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/deleteAll",produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<HttpStatus> deleteAllMapping() {
         try {
             _mappingMongoRepository.deleteAll();
@@ -123,7 +127,7 @@ public class MappingController {
         }
     }
 
-    @DeleteMapping(value = "/deleteById/{Id}",produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/deleteById/{Id}",produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<HttpStatus> deleteMappingById(@PathVariable("Id") String Id) {
         try {
             var mapping = _mappingMongoRepository.findById(Id);
@@ -145,6 +149,7 @@ public class MappingController {
         var mappingList = _mappingMongoRepository.findAll();
         final List<String> csvList = new ArrayList<>();
 
+        AtomicInteger counter = new AtomicInteger();
         IntStream.range(0, mappingList.size()).forEachOrdered(i -> {
             mappingrmltext.append("\n\n<#").append(mappingList.get(i).getEntity()).append("Mapping> a rr:TriplesMap;");
             mappingrmltext.append("\n\trml:logicalSource [");
@@ -153,15 +158,29 @@ public class MappingController {
             mappingrmltext.append("\n\t];");
             mappingrmltext.append("\n\trr:subjectMap [");
             mappingrmltext.append("\n\t\trr:template \"http://example.com/{").append(mappingList.get(i).getKey()).append("}\";");
-            mappingrmltext.append("\n\t\trr:class ()");
+            if(!Objects.equals(mappingList.get(i).getClas(), "")){
+                mappingrmltext.append("\n\t\trr:class ");
+                mappingrmltext.append(mappingList.get(i).getClas());
+            }else{
+                mappingrmltext.append("\n\t\trr:class ()");
+            }
             mappingrmltext.append("\n\t];\n");
             mappingList.get(i).getPropertiesMap().forEach((key, value) -> {
+                counter.getAndIncrement();
                 mappingrmltext.append("\n\trr:predicateObjectMap [");
-                mappingrmltext.append("\n\t\trr:predicate ").append(key).append(";");
-                if (i < mappingList.get(i).getPropertiesMap().size() - 1) {
-                    mappingrmltext.append("\n\t\trr:objectMap [rml:reference ").append(value).append("]];");
+                mappingrmltext.append("\n\t\trr:predicate ").append(key.replace('.','_')).append(";");
+                if (counter.get() < mappingList.get(i).getPropertiesMap().size()) {
+                    mappingrmltext.append("\n\t\trr:objectMap [rml:reference ")
+                            .append("\"")
+                            .append(value)
+                            .append("\"")
+                            .append("]];");
                 } else {
-                    mappingrmltext.append("\n\t\trr:objectMap [rml:reference ").append(value).append("]].");
+                    mappingrmltext.append("\n\t\trr:objectMap [rml:reference ")
+                            .append("\"")
+                            .append(value)
+                            .append("\"")
+                            .append("]].");
                 }
             });
             mappingList.get(i).getProlog()
