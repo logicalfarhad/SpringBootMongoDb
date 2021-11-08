@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
@@ -36,15 +37,15 @@ public class MappingController {
         this.repo = new Repo();
     }
 
-    @ApiOperation(value = "getAll", notes="Get all the mapping configuration",nickname = "getGreeting")
-    @GetMapping(value = "/getAll",produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "getAll", notes = "Get all the mapping configuration", nickname = "getGreeting")
+    @GetMapping(value = "/getAll", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Mapping>> getAllMapping() {
         var mappingList = _mappingMongoRepository.findAll();
 
         return new ResponseEntity<>(mappingList, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/getById/{Id}",produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/getById/{Id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Schema> getMappingById(@PathVariable("Id") String Id) {
         var _mapping = _mappingMongoRepository.findById(Id);
 
@@ -78,7 +79,7 @@ public class MappingController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping(value = "/save",produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/save", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Mapping> createMapping(@RequestBody Mapping mapping) {
         try {
             var _mapping = _mappingMongoRepository
@@ -97,7 +98,7 @@ public class MappingController {
         }
     }
 
-    @PostMapping(value = "/editById/{Id}" ,produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/editById/{Id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Mapping> updateMapping(@PathVariable("Id") String Id, @RequestBody Mapping mapping) {
         var mappingData = _mappingMongoRepository.findById(Id);
 
@@ -117,7 +118,7 @@ public class MappingController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping(value = "/deleteAll",produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/deleteAll", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<HttpStatus> deleteAllMapping() {
         try {
             _mappingMongoRepository.deleteAll();
@@ -127,7 +128,7 @@ public class MappingController {
         }
     }
 
-    @PostMapping(value = "/deleteById/{Id}",produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/deleteById/{Id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<HttpStatus> deleteMappingById(@PathVariable("Id") String Id) {
         try {
             var mapping = _mappingMongoRepository.findById(Id);
@@ -142,41 +143,53 @@ public class MappingController {
     }
 
 
-    @GetMapping(value = "/getMapping",produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/getMapping", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Repo> generateMapping() {
 
-        final var mappingrmltext = new StringBuilder();
+        final var rmltext = new StringBuilder();
         var mappingList = _mappingMongoRepository.findAll();
+
+        AtomicBoolean isNull = new AtomicBoolean(false);
+
+        mappingList.forEach(item -> {
+            var propertiesMap = item.getPropertiesMap();
+            if (propertiesMap == null) {
+                isNull.set(true);
+            }
+        });
+        if (isNull.get()) {
+            return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+        }
         final List<String> csvList = new ArrayList<>();
 
         AtomicInteger counter = new AtomicInteger();
         IntStream.range(0, mappingList.size()).forEachOrdered(i -> {
-            mappingrmltext.append("\n\n<#").append(mappingList.get(i).getEntity()).append("Mapping> a rr:TriplesMap;");
-            mappingrmltext.append("\n\trml:logicalSource [");
-            mappingrmltext.append("\n\t\trml:source \"").append(mappingList.get(i).getSource()).append("\";");
-            mappingrmltext.append("\n\t\trml:referenceFormulation ql:").append(mappingList.get(i).getType().toUpperCase());
-            mappingrmltext.append("\n\t];");
-            mappingrmltext.append("\n\trr:subjectMap [");
-            mappingrmltext.append("\n\t\trr:template \"http://example.com/{").append(mappingList.get(i).getKey()).append("}\";");
-            if(!Objects.equals(mappingList.get(i).getClas(), "")){
-                mappingrmltext.append("\n\t\trr:class ");
-                mappingrmltext.append(mappingList.get(i).getClas());
-            }else{
-                mappingrmltext.append("\n\t\trr:class ()");
+            rmltext.append("\n\n<#").append(mappingList.get(i).getEntity()).append("Mapping> a rr:TriplesMap;");
+            rmltext.append("\n\trml:logicalSource [");
+            rmltext.append("\n\t\trml:source \"").append(mappingList.get(i).getSource()).append("\";");
+            rmltext.append("\n\t\trml:referenceFormulation ql:").append(mappingList.get(i).getType().toUpperCase());
+            rmltext.append("\n\t];");
+            rmltext.append("\n\trr:subjectMap [");
+            rmltext.append("\n\t\trr:template \"http://example.com/{").append(mappingList.get(i).getKey()).append("}\";");
+            if (!Objects.equals(mappingList.get(i).getClas(), "")) {
+                rmltext.append("\n\t\trr:class ");
+                rmltext.append(mappingList.get(i).getClas());
+            } else {
+                rmltext.append("\n\t\trr:class ()");
             }
-            mappingrmltext.append("\n\t];\n");
+            rmltext.append("\n\t];\n");
             mappingList.get(i).getPropertiesMap().forEach((key, value) -> {
                 counter.getAndIncrement();
-                mappingrmltext.append("\n\trr:predicateObjectMap [");
-                mappingrmltext.append("\n\t\trr:predicate ").append(key.replace('.','_')).append(";");
+                rmltext.append("\n\trr:predicateObjectMap [");
+                rmltext.append("\n\t\trr:predicate ").append(key.replace('.', '_')).append(";");
                 if (counter.get() < mappingList.get(i).getPropertiesMap().size()) {
-                    mappingrmltext.append("\n\t\trr:objectMap [rml:reference ")
+                    rmltext.append("\n\t\trr:objectMap [rml:reference ")
                             .append("\"")
                             .append(value)
                             .append("\"")
                             .append("]];");
                 } else {
-                    mappingrmltext.append("\n\t\trr:objectMap [rml:reference ")
+                    rmltext.append("\n\t\trr:objectMap [rml:reference ")
                             .append("\"")
                             .append(value)
                             .append("\"")
@@ -185,17 +198,17 @@ public class MappingController {
             });
             mappingList.get(i).getProlog()
                     .forEach((key, value)
-                            -> mappingrmltext.insert(0, "@prefix " + key + ": <" + value + ">.\n"));
+                            -> rmltext.insert(0, "@prefix " + key + ": <" + value + ">.\n"));
 
             if (mappingList.get(i).getProlog().size() == 1) {
-                mappingrmltext.insert(0, "@base <http://example.com/ns#>.\n");
+                rmltext.insert(0, "@base <http://example.com/ns#>.\n");
             } else if (i < mappingList.get(i).getProlog().size() - 1) {
-                mappingrmltext.insert(0, "@base <http://example.com/ns#>.\n");
+                rmltext.insert(0, "@base <http://example.com/ns#>.\n");
             }
             csvList.add(mappingList.get(i).getSource());
         });
         repo.setCsvFileList(csvList);
-        repo.setRmlText(mappingrmltext.toString());
+        repo.setRmlText(rmltext.toString());
         return new ResponseEntity<>(repo, HttpStatus.CREATED);
     }
 }
