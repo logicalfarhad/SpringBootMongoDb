@@ -70,6 +70,7 @@ public class FileService {
 
     public Resource load(String filename) {
         try {
+            System.out.println(filename);
             Path file = Paths.get(uploadPath)
                              .resolve(filename);
             Resource resource = new UrlResource(file.toUri());
