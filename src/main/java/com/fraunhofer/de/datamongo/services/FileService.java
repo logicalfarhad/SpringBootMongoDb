@@ -43,23 +43,29 @@ public class FileService {
             if (!Files.exists(root)) {
                 init();
             }
-            Path copyLocation = Paths.get(uploadPath + File.separator + StringUtils.cleanPath(file.getOriginalFilename()));
+            deleteExistingFiles(new File(uploadPath));
+            Path copyLocation = Paths
+                    .get(uploadPath + File.separator + StringUtils.cleanPath(file.getOriginalFilename()));
             Files.copy(file.getInputStream(), copyLocation, StandardCopyOption.REPLACE_EXISTING);
             System.out.println(copyLocation.toString());
         } catch (Exception e) {
             e.printStackTrace();
-            throw new FileStorageException("Could not store file " + file.getOriginalFilename()
-                + ". Please try again!");
+            throw new FileStorageException(
+                    "Could not store file " + file.getOriginalFilename() + ". Please try again!");
         }
+    }
+
+    public void deleteExistingFiles(File dir) {
+        for (File file : dir.listFiles())
+            if (!file.isDirectory())
+                file.delete();
     }
 
     public List<Path> loadAll() {
         try {
             Path root = Paths.get(uploadPath);
             if (Files.exists(root)) {
-                return Files.walk(root, 1)
-                            .filter(path -> !path.equals(root))
-                            .collect(Collectors.toList());
+                return Files.walk(root, 1).filter(path -> !path.equals(root)).collect(Collectors.toList());
             }
 
             return Collections.emptyList();
@@ -71,8 +77,7 @@ public class FileService {
     public Resource load(String filename) {
         try {
             System.out.println(filename);
-            Path file = Paths.get(uploadPath)
-                             .resolve(filename);
+            Path file = Paths.get(uploadPath).resolve(filename);
             Resource resource = new UrlResource(file.toUri());
 
             if (resource.exists() || resource.isReadable()) {
