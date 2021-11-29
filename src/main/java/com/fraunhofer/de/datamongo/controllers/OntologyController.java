@@ -83,31 +83,40 @@ public class OntologyController {
     public ResponseEntity<List<LocalOntology>> search(@RequestParam String query, @RequestParam String objectType) {
         List<LocalOntology> localOntologiesData = new ArrayList<LocalOntology>();
         File folder = new File(uploadPath);
-        String fileName = folder.listFiles()[0].getName();
-        Path resouceLocation = Paths.get(uploadPath + File.separator + fileName);
-        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM);
-        model.read(resouceLocation.toString());
-        if (Objects.equals("class", objectType)) {
-            var classes = model.listClasses().toList();
-            for (var item : classes) {                
-                if (item.getLocalName() != null && item.getLocalName().contains(query)) {
-                    var ontology = new LocalOntology();
-                    ontology.setName(item.getLocalName());
-                    ontology.setUri(item.getURI());
-                    localOntologiesData.add(ontology);
-                }                
-            }
-        } else {
-            var properties = model.listAllOntProperties().toList();
-            for (var item : properties) {                
-                if (item.getLocalName().contains(query)) {
-                    var ontology = new LocalOntology();
-                    ontology.setName(item.getLocalName());
-                    ontology.setUri(item.getURI());
-                    localOntologiesData.add(ontology);
+        for (int i = 0; i < folder.listFiles().length; i++){
+            String fileName = folder.listFiles()[i].getName();
+            Path resouceLocation = Paths.get(uploadPath + File.separator + fileName);
+            OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM);
+            model.read(resouceLocation.toString());
+            if (Objects.equals("class", objectType)) {
+                var classes = model.listClasses().toList();
+                for (var item : classes) {                
+                    if (item.getLocalName() != null && item.getLocalName().contains(query)) {
+                        var ontology = new LocalOntology();
+                        ontology.setName(item.getLocalName());
+                        ontology.setUri(item.getURI());
+                        boolean alreadyExists = localOntologiesData.stream().anyMatch (x -> x.getName().equals(item.getLocalName()));
+                        if(!alreadyExists){
+                            localOntologiesData.add(ontology);
+                        }                        
+                    }                
+                }
+            } else {
+                var properties = model.listAllOntProperties().toList();
+                for (var item : properties) {                
+                    if (item.getLocalName().contains(query)) {
+                        var ontology = new LocalOntology();
+                        ontology.setName(item.getLocalName());
+                        ontology.setUri(item.getURI());
+                        boolean alreadyExists = localOntologiesData.stream().anyMatch (x -> x.getName().equals(item.getLocalName()));
+                        if(!alreadyExists){
+                            localOntologiesData.add(ontology);
+                        }
+                    }
                 }
             }
         }
+        
         return ResponseEntity.status(HttpStatus.OK).body(localOntologiesData);
     }
 
@@ -117,6 +126,12 @@ public class OntologyController {
         redirectAttributes.addFlashAttribute("message",
                 "You successfully uploaded " + file.getOriginalFilename() + "!");
         return "redirect:/";
+    }
+
+    @PostMapping("/deleteFile")
+    public ResponseEntity<String> deleteFile(@RequestBody String fileName) {
+        fileService.deleteFile(fileName);
+        return ResponseEntity.status(HttpStatus.OK).body(fileName + " deleted successfully.");
     }
 
     @GetMapping("/getListFiles")

@@ -43,7 +43,6 @@ public class FileService {
             if (!Files.exists(root)) {
                 init();
             }
-            deleteExistingFiles(new File(uploadPath));
             Path copyLocation = Paths
                     .get(uploadPath + File.separator + StringUtils.cleanPath(file.getOriginalFilename()));
             Files.copy(file.getInputStream(), copyLocation, StandardCopyOption.REPLACE_EXISTING);
@@ -55,7 +54,19 @@ public class FileService {
         }
     }
 
-    public void deleteExistingFiles(File dir) {
+    public void deleteFile(String fileName) {
+        try {
+            Path copyLocation = Paths
+                    .get(uploadPath + File.separator + StringUtils.cleanPath(fileName));
+            Files.delete(copyLocation);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new FileStorageException(
+                    "Could not delete file " + fileName + ". Please try again!");
+        }
+    }
+
+    public void deleteAllExistingFiles(File dir) {
         for (File file : dir.listFiles())
             if (!file.isDirectory())
                 file.delete();
