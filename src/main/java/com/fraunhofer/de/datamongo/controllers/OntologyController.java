@@ -64,7 +64,7 @@ public class OntologyController {
      */
 
     @GetMapping("/getDefault")
-    public ResponseEntity<List<String>> getOntology() {
+    public ResponseEntity<List<String>> getDefault() {
         List<String> prefixedName = new ArrayList<String>();
         File folder = new File(uploadPath);
         String fileName = folder.listFiles()[0].getName();
@@ -83,40 +83,69 @@ public class OntologyController {
     public ResponseEntity<List<LocalOntology>> search(@RequestParam String query, @RequestParam String objectType) {
         List<LocalOntology> localOntologiesData = new ArrayList<LocalOntology>();
         File folder = new File(uploadPath);
-        for (int i = 0; i < folder.listFiles().length; i++){
+        for (int i = 0; i < folder.listFiles().length; i++) {
             String fileName = folder.listFiles()[i].getName();
             Path resouceLocation = Paths.get(uploadPath + File.separator + fileName);
             OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM);
             model.read(resouceLocation.toString());
             if (Objects.equals("class", objectType)) {
                 var classes = model.listClasses().toList();
-                for (var item : classes) {                
+                for (var item : classes) {
                     if (item.getLocalName() != null && item.getLocalName().contains(query)) {
                         var ontology = new LocalOntology();
                         ontology.setName(item.getLocalName());
                         ontology.setUri(item.getURI());
-                        boolean alreadyExists = localOntologiesData.stream().anyMatch (x -> x.getName().equals(item.getLocalName()));
-                        if(!alreadyExists){
+                        boolean alreadyExists = localOntologiesData.stream()
+                                .anyMatch(x -> x.getName().equals(item.getLocalName()));
+                        if (!alreadyExists) {
                             localOntologiesData.add(ontology);
-                        }                        
-                    }                
+                        }
+                    }
                 }
             } else {
                 var properties = model.listAllOntProperties().toList();
-                for (var item : properties) {                
+                for (var item : properties) {
                     if (item.getLocalName().contains(query)) {
                         var ontology = new LocalOntology();
                         ontology.setName(item.getLocalName());
                         ontology.setUri(item.getURI());
-                        boolean alreadyExists = localOntologiesData.stream().anyMatch (x -> x.getName().equals(item.getLocalName()));
-                        if(!alreadyExists){
+                        boolean alreadyExists = localOntologiesData.stream()
+                                .anyMatch(x -> x.getName().equals(item.getLocalName()));
+                        if (!alreadyExists) {
                             localOntologiesData.add(ontology);
                         }
                     }
                 }
             }
         }
-        
+
+        return ResponseEntity.status(HttpStatus.OK).body(localOntologiesData);
+    }
+
+    @GetMapping("/getOntology")
+    public ResponseEntity<List<LocalOntology>> getOntology() {
+        List<LocalOntology> localOntologiesData = new ArrayList<LocalOntology>();
+        File folder = new File(uploadPath);
+        for (int i = 0; i < folder.listFiles().length; i++) {
+            String fileName = folder.listFiles()[i].getName();
+            Path resouceLocation = Paths.get(uploadPath + File.separator + fileName);
+            OntModel model = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM_RDFS_INF);
+            model.read(resouceLocation.toString());
+            var classes = model.listClasses().toList();
+            for (var item : classes) {
+                var ontology = new LocalOntology();
+                ontology.setName(item.getLocalName());
+                ontology.setUri(item.getURI());
+                for(var prop: item.listDeclaredProperties().toList()){
+                    var property = new LocalOntology();
+                    property.setName(prop.getLocalName());
+                    property.setUri(prop.getURI());
+                    ontology.addProperties(property);             
+                }
+                localOntologiesData.add(ontology);
+            }
+        }
+
         return ResponseEntity.status(HttpStatus.OK).body(localOntologiesData);
     }
 
