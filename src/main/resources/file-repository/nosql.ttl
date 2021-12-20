@@ -1,0 +1,550 @@
+@prefix : <http://purl.org/db/nosql#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <http://purl.org/db/nosql> .  
+
+<http://purl.org/db/nosql> rdf:type owl:Ontology ;
+                            <http://creativecommons.org/ns#license> <http://creativecommons.org/licenses/by-nc-sa/3.0/> ;
+                            <http://purl.org/dc/elements/1.1/created> "2017-12-15T17:00:00"^^xsd:dateTime ;
+                            <http://purl.org/dc/elements/1.1/creator> "http://mohamednadjibmami.com/me"^^xsd:string ;
+                            <http://purl.org/dc/elements/1.1/description> "A vocabulary about NOSQL stores, and their related concepts."^^xsd:string ;
+                            <http://purl.org/dc/elements/1.1/publisher> <http://de.dbpedia.org/resource/Fraunhofer-Gesellschaft> ;
+                            <http://purl.org/dc/elements/1.1/rights> <http://creativecommons.org/licenses/by-nc-sa/3.0/> ;
+                            <http://purl.org/dc/elements/1.1/title> "Vocabulary about NOSQL stores"@en ;
+                            <http://purl.org/vocab/vann/preferredNamespacePrefix> "nosql"^^xsd:string ;
+                            <http://purl.org/vocab/vann/preferredNamespaceUri> "http://purl.org/db/nosql#"^^xsd:string ;
+                            rdfs:comment "Version 0.1: 1st publication"^^xsd:string ;
+                            owl:versionInfo "0.1"^^xsd:string .
+
+#################################################################
+#    Annotation properties
+#################################################################
+
+###  http://creativecommons.org/ns#license
+<http://creativecommons.org/ns#license> rdf:type owl:AnnotationProperty .
+
+
+###  http://purl.org/dc/elements/1.1/contributor
+<http://purl.org/dc/elements/1.1/contributor> rdf:type owl:AnnotationProperty .
+
+
+###  http://purl.org/dc/elements/1.1/creator
+<http://purl.org/dc/elements/1.1/creator> rdf:type owl:AnnotationProperty .
+
+
+###  http://www.w3.org/1999/02/22-rdf-syntax-ns#about
+rdf:about rdf:type owl:AnnotationProperty ;
+          rdf:label "About"@en.
+
+
+###  http://www.w3.org/1999/02/22-rdf-syntax-ns#resource
+rdf:resource rdf:type owl:AnnotationProperty .
+
+
+#################################################################
+#    Object Properties
+#################################################################
+
+###  http://purl.org/db/nosql#compliesWith
+:compliesWith rdf:type owl:ObjectProperty ;
+              rdfs:domain :Store ;
+              rdfs:range :Properties ;
+              rdfs:comment "Tell which database is compliant with which properties, like relational database with ACID properties, or NOSQL wirh BASE properties."@en .
+
+
+###  http://purl.org/db/nosql#hasAttribute
+:hasAttribute rdf:type owl:ObjectProperty ;
+              rdfs:domain :Entity ;
+              rdfs:range :Attribute ;
+              rdfs:comment "An entity in a database consists of a set of attributes."@en .
+
+
+###  http://purl.org/db/nosql#hasCollection
+:hasCollection rdf:type owl:ObjectProperty ;
+               rdfs:subPropertyOf :hasEntity ;
+               rdfs:domain :MongoDB ;
+               rdfs:range :Collection ;
+               rdfs:comment "Special to MongoDB, data is stored in collections of documents."@en .
+
+
+###  http://purl.org/db/nosql#hasData_Bucket
+:hasData_Bucket rdf:type owl:ObjectProperty ;
+                rdfs:subPropertyOf :hasEntity ;
+                rdfs:domain :CouchDB ;
+                rdfs:range :Data_Bucket ;
+                rdfs:comment "Special to CouchDB databases, a CouchDB has a number of data buckets."@en .
+
+
+###  http://purl.org/db/nosql#hasEntity
+:hasEntity rdf:type owl:ObjectProperty ;
+           rdfs:domain :Store ;
+           rdfs:range :Entity ;
+           rdfs:comment "A database contails one or more entities."@en .
+
+
+###  http://purl.org/db/nosql#hasIndex
+:hasIndex rdf:type owl:ObjectProperty ;
+          rdfs:domain :Store ;
+          rdfs:range :Index .
+
+
+###  http://purl.org/db/nosql#hasPrimaryKey
+:hasPrimaryKey rdf:type owl:ObjectProperty ;
+               rdfs:domain :Entity ;
+               rdfs:range :PrimaryKey ;
+               rdfs:comment "Sets the primary key of an entity of a database."@en .
+
+
+###  http://purl.org/db/nosql#hasTable
+:hasTable rdf:type owl:ObjectProperty ;
+          rdfs:subPropertyOf :hasEntity ;
+          rdfs:domain :NonRelationalDB ;
+          rdfs:range :Table ;
+          rdfs:comment "Certain NOSQL databases store data in tables."@en .
+
+
+###  http://purl.org/db/nosql#queriedBy
+:queriedBy rdf:type owl:ObjectProperty ;
+           rdfs:domain :Store ;
+           rdfs:range :QueryLanguage ;
+           rdfs:comment "Define the query language of a certain database."@en .
+
+
+###  http://purl.org/db/nosql#runsIn
+:runsIn rdf:type owl:ObjectProperty ;
+        rdfs:domain :Store ;
+        rdfs:range :Cluster ;
+        rdfs:comment "A distributed database can run in a cluster."@en .
+
+
+###  http://purl.org/db/nosql#store
+:store rdf:type owl:ObjectProperty ;
+       rdf:label "Store"; 
+       rdfs:range :Store .
+
+
+###  http://purl.org/db/nosql#viewIn
+:viewIn rdf:type owl:ObjectProperty ;
+        rdfs:domain :View ;
+        rdfs:range :Store .
+
+
+#################################################################
+#    Classes
+#################################################################
+
+###  http://purl.org/db/nosql#ACID
+:ACID rdf:type owl:Class ;
+      rdfs:subClassOf :Properties ;
+      owl:disjointWith :BASE ;
+      rdfs:comment "In a database, ACID are four properties: Atomicity, Consistency, Isolation, and Durability, that ensure that transactions, failed or succeded, leave the data in a valid and consistent state."@en .
+
+
+###  http://purl.org/db/nosql#AQL
+:AQL rdf:type owl:Class ;
+     rdfs:subClassOf :QueryLanguage ;
+     rdfs:comment "ArangoDB Query Language, query language used to interact with an ArangoDB database."@en .
+
+
+###  http://purl.org/db/nosql#Accumulo
+:Accumulo rdf:type owl:Class ;
+          rdfs:subClassOf :Columnar .
+
+
+###  http://purl.org/db/nosql#AllegroGraph
+:AllegroGraph rdf:type owl:Class ;
+              rdfs:subClassOf :Graph .
+
+
+###  http://purl.org/db/nosql#ArangoDB
+:ArangoDB rdf:type owl:Class ;
+          rdfs:subClassOf :Document ,
+                          :Graph ,
+                          :KeyValue ,
+                          :Multi-model .
+
+
+###  http://purl.org/db/nosql#Attribute
+:Attribute rdf:type owl:Class ;
+           rdfs:comment "A term that groups all concepts used by different databases to characterize a particular datum stored in it, e.g., column in  Cassandra, field in MongoDB"@en .
+
+
+###  http://purl.org/db/nosql#BASE
+:BASE rdf:type owl:Class ;
+      rdfs:subClassOf :Properties ;
+      rdfs:comment "A set of four properties: Basically Available, Soft state, Eventual consistency, that are commonly found in distributed NOSQL stores, as apposed to ACID in relational databases. Data added might not be ready for query everywhere, but will eventually be, and hence a system state is in constant change."@en .
+
+
+###  http://purl.org/db/nosql#Bagri
+:Bagri rdf:type owl:Class ;
+       rdfs:subClassOf :Document .
+
+
+###  http://purl.org/db/nosql#Berkeley_DB
+:Berkeley_DB rdf:type owl:Class ;
+             rdfs:subClassOf :KeyValue .
+
+
+###  http://purl.org/db/nosql#Blazegraph
+:Blazegraph rdf:type owl:Class ;
+            rdfs:subClassOf :Graph .
+
+
+###  http://purl.org/db/nosql#CQL
+:CQL rdf:type owl:Class ;
+     rdfs:subClassOf :QueryLanguage ;
+     rdfs:comment "Cassandra Query Language, query language (SQL-like) used to interact with a Cassandra database."@en .
+
+
+###  http://purl.org/db/nosql#Cassandra
+:Cassandra rdf:type owl:Class ;
+           rdfs:subClassOf :Columnar .
+
+
+###  http://purl.org/db/nosql#Chouchbase
+:Chouchbase rdf:type owl:Class ;
+            rdfs:subClassOf :Document .
+
+
+###  http://purl.org/db/nosql#Cloud_Datastore
+:Cloud_Datastore rdf:type owl:Class ;
+                 rdfs:subClassOf :Document .
+
+
+###  http://purl.org/db/nosql#Cloudant
+:Cloudant rdf:type owl:Class ;
+          rdfs:subClassOf :Document .
+
+
+###  http://purl.org/db/nosql#Cluster
+:Cluster rdf:type owl:Class ;
+         rdfs:comment "A group of physical or virtual computing machines."@en .
+
+
+###  http://purl.org/db/nosql#Collection
+:Collection rdf:type owl:Class ;
+            rdfs:subClassOf :Entity .
+
+
+###  http://purl.org/db/nosql#Columnar
+:Columnar rdf:type owl:Class ;
+          rdfs:subClassOf :Store ;
+          rdfs:comment "Columnar or column-based store organises data virtually around rows, but stores it physically by columns. It may allow to store rows of different schema in one same table."@en .
+
+
+###  http://purl.org/db/nosql#Cosmos_DB
+:Cosmos_DB rdf:type owl:Class ;
+           rdfs:subClassOf :Columnar ,
+                           :Document ,
+                           :Graph ,
+                           :KeyValue ,
+                           :Multi-model .
+
+
+###  http://purl.org/db/nosql#CouchDB
+:CouchDB rdf:type owl:Class ;
+         rdfs:subClassOf :Document .
+
+
+###  http://purl.org/db/nosql#Cypher
+:Cypher rdf:type owl:Class ;
+        rdfs:subClassOf :QueryLanguage ;
+        rdfs:comment "Query language used to intereact with a Neo4j database."@en .
+
+
+###  http://purl.org/db/nosql#DSE_Graph
+:DSE_Graph rdf:type owl:Class ;
+           rdfs:subClassOf :Graph .
+
+
+###  http://purl.org/db/nosql#Data_Bucket
+:Data_Bucket rdf:type owl:Class ;
+             rdfs:subClassOf :Entity .
+
+
+###  http://purl.org/db/nosql#Dgraph
+:Dgraph rdf:type owl:Class ;
+        rdfs:subClassOf :Graph .
+
+
+###  http://purl.org/db/nosql#Document
+:Document rdf:type owl:Class ;
+          rdfs:subClassOf :Store ;
+          rdfs:comment "Document store stores data in form of documents, like under JSOB/BSON formats."@en .
+
+
+###  http://purl.org/db/nosql#DocumentDB
+:DocumentDB rdf:type owl:Class ;
+            rdfs:subClassOf :Document .
+
+
+###  http://purl.org/db/nosql#DocumentID
+:DocumentID rdf:type owl:Class ;
+            rdfs:subClassOf :PrimaryKey .
+
+
+###  http://purl.org/db/nosql#Druid
+:Druid rdf:type owl:Class ;
+       rdfs:subClassOf :Columnar .
+
+
+###  http://purl.org/db/nosql#DynamoDB
+:DynamoDB rdf:type owl:Class ;
+          rdfs:subClassOf :KeyValue .
+
+
+###  http://purl.org/db/nosql#Elassandra
+:Elassandra rdf:type owl:Class ;
+            rdfs:subClassOf :Columnar .
+
+
+###  http://purl.org/db/nosql#Entity
+:Entity rdf:type owl:Class ;
+        rdfs:comment "A term that groups all concepts used by different databases to store similar data together."@en .
+
+
+###  http://purl.org/db/nosql#GlobalSecondaryIndex
+:GlobalSecondaryIndex rdf:type owl:Class ;
+                      rdfs:subClassOf :View .
+
+
+###  http://purl.org/db/nosql#Graph
+:Graph rdf:type owl:Class ;
+       rdfs:subClassOf :Store ;
+       rdfs:comment "Graph store stores highly interconnected data, in form of graphs."@en .
+
+
+###  http://purl.org/db/nosql#Graph_Engine
+:Graph_Engine rdf:type owl:Class ;
+              rdfs:subClassOf :Graph .
+
+
+###  http://purl.org/db/nosql#HBase
+:HBase rdf:type owl:Class ;
+       rdfs:subClassOf :Columnar .
+
+
+###  http://purl.org/db/nosql#HQL
+:HQL rdf:type owl:Class ;
+     rdfs:subClassOf :QueryLanguage ;
+     rdfs:comment "Hypertable Query Language, query language (SQL-like) used to interact with a Hypertable database."@en .
+
+
+###  http://purl.org/db/nosql#HypergraphDB
+:HypergraphDB rdf:type owl:Class ;
+              rdfs:subClassOf :Graph .
+
+
+###  http://purl.org/db/nosql#Hypertable
+:Hypertable rdf:type owl:Class ;
+            rdfs:subClassOf :Columnar .
+
+
+###  http://purl.org/db/nosql#Index
+:Index rdf:type owl:Class .
+
+
+###  http://purl.org/db/nosql#InfiniteGraph
+:InfiniteGraph rdf:type owl:Class ;
+               rdfs:subClassOf :Graph .
+
+
+###  http://purl.org/db/nosql#JanusGraph
+:JanusGraph rdf:type owl:Class ;
+            rdfs:subClassOf :Graph .
+
+
+###  http://purl.org/db/nosql#KeyValue
+:KeyValue rdf:type owl:Class ;
+          rdfs:subClassOf :Store ;
+          rdfs:comment "Key-value store stores data in form of long key,value maps."@en .
+
+
+###  http://purl.org/db/nosql#Kudu
+:Kudu rdf:type owl:Class ;
+      rdfs:subClassOf :Columnar .
+
+
+###  http://purl.org/db/nosql#MarkLogic
+:MarkLogic rdf:type owl:Class ;
+           rdfs:subClassOf :Document .
+
+
+###  http://purl.org/db/nosql#MaterializedView
+:MaterializedView rdf:type owl:Class ;
+                  rdfs:subClassOf :View .
+
+
+###  http://purl.org/db/nosql#Memcached
+:Memcached rdf:type owl:Class ;
+           rdfs:subClassOf :KeyValue .
+
+
+###  http://purl.org/db/nosql#MonetDB
+:MonetDB rdf:type owl:Class ;
+         rdfs:subClassOf :Columnar .
+
+
+###  http://purl.org/db/nosql#MongoDB
+:MongoDB rdf:type owl:Class ;
+         rdfs:subClassOf :Document .
+
+
+###  http://purl.org/db/nosql#Multi-model
+:Multi-model rdf:type owl:Class ;
+             rdfs:subClassOf :Store .
+
+
+###  http://purl.org/db/nosql#N1QL
+:N1QL rdf:type owl:Class ;
+      rdfs:subClassOf :QueryLanguage ;
+      rdfs:comment "Query language (SQL-like) used to interact with a Couchbase database."^^xsd:string .
+
+
+###  http://purl.org/db/nosql#Neo4j
+:Neo4j rdf:type owl:Class ;
+       rdfs:subClassOf :Graph .
+
+
+###  http://purl.org/db/nosql#NonRelationalDB
+:NonRelationalDB rdf:type owl:Class ;
+                 owl:equivalentClass :Store ;
+                 rdfs:comment "A non-relation database, is a database that is designed around other models than the relational model. Used interchangbly with NOSQL database or store."@en .
+
+
+###  http://purl.org/db/nosql#ObjectID
+:ObjectID rdf:type owl:Class ;
+          rdfs:subClassOf :PrimaryKey .
+
+
+###  http://purl.org/db/nosql#Oracle_NoSQL_Database
+:Oracle_NoSQL_Database rdf:type owl:Class ;
+                       rdfs:subClassOf :KeyValue .
+
+
+###  http://purl.org/db/nosql#OrientDB
+:OrientDB rdf:type owl:Class ;
+          rdfs:subClassOf :Document ,
+                          :Graph ,
+                          :KeyValue ,
+                          :Multi-model .
+
+
+###  http://purl.org/db/nosql#PrimaryKey
+:PrimaryKey rdf:type owl:Class .
+
+
+###  http://purl.org/db/nosql#Primary_key
+:Primary_key rdf:type owl:Class ;
+             rdfs:subClassOf :PrimaryKey .
+
+
+###  http://purl.org/db/nosql#Properties
+:Properties rdf:type owl:Class .
+
+
+###  http://purl.org/db/nosql#QueryLanguage
+:QueryLanguage rdf:type owl:Class ;
+               rdfs:comment "A syntax of a query or dialect to interact with a database."@en .
+
+
+###  http://purl.org/db/nosql#RavenDB
+:RavenDB rdf:type owl:Class ;
+         rdfs:subClassOf :Document .
+
+
+###  http://purl.org/db/nosql#Redis
+:Redis rdf:type owl:Class ;
+       rdfs:subClassOf :KeyValue .
+
+
+###  http://purl.org/db/nosql#RethinkDB
+:RethinkDB rdf:type owl:Class ;
+           rdfs:subClassOf :Document .
+
+
+###  http://purl.org/db/nosql#Riak
+:Riak rdf:type owl:Class ;
+      rdfs:subClassOf :KeyValue .
+
+
+###  http://purl.org/db/nosql#Scalaris
+:Scalaris rdf:type owl:Class ;
+          rdfs:subClassOf :KeyValue .
+
+
+###  http://purl.org/db/nosql#Scylla
+:Scylla rdf:type owl:Class ;
+        rdfs:subClassOf :Columnar .
+
+
+###  http://purl.org/db/nosql#SecondaryIndex
+:SecondaryIndex rdf:type owl:Class ;
+                rdfs:subClassOf :Index .
+
+
+###  http://purl.org/db/nosql#SequoiaDB
+:SequoiaDB rdf:type owl:Class ;
+           rdfs:subClassOf :Document .
+
+
+###  http://purl.org/db/nosql#SimpleDB
+:SimpleDB rdf:type owl:Class ;
+          rdfs:subClassOf :Columnar .
+
+
+###  http://purl.org/db/nosql#Sparksee
+:Sparksee rdf:type owl:Class ;
+          rdfs:subClassOf :Graph .
+
+
+###  http://purl.org/db/nosql#Store
+:Store rdf:type owl:Class ;
+       rdfs:comment "Only SQL, NOSQL stores are databases designed around other models than the traditional relational database. It has five categories: Key-value, document, columnar, graph and multi-model."@en ,
+                    "Set the type of NOSQL a certain database is."@en .
+
+
+###  http://purl.org/db/nosql#Table
+:Table rdf:type owl:Class ;
+       rdfs:subClassOf :Entity .
+
+
+###  http://purl.org/db/nosql#Tarantool
+:Tarantool rdf:type owl:Class ;
+           rdfs:subClassOf :KeyValue .
+
+
+###  http://purl.org/db/nosql#Trinity
+:Trinity rdf:type owl:Class ;
+         rdfs:subClassOf :Graph .
+
+
+###  http://purl.org/db/nosql#View
+:View rdf:type owl:Class .
+
+
+###  http://purl.org/db/nosql#Voldemort
+:Voldemort rdf:type owl:Class ;
+           rdfs:subClassOf :KeyValue .
+
+
+###  http://purl.org/db/nosql#c-treeACE
+:c-treeACE rdf:type owl:Class ;
+           rdfs:subClassOf :KeyValue .
+
+
+###  http://purl.org/db/nosql#upscaledb
+:upscaledb rdf:type owl:Class ;
+           rdfs:subClassOf :KeyValue .
+
+
+[ rdf:resource "http://creativecommons.org/licenses/by/3.0/"^^xsd:string
+] .
+
+[ rdf:about "http://mohamednadjibmami.com/me"^^xsd:string
+ ] .
+
+###  Generated by the OWL API (version 5.1.0) https://github.com/owlcs/owlapi/

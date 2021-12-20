@@ -86,7 +86,7 @@ public class OntologyController {
         for (int i = 0; i < folder.listFiles().length; i++) {
             String fileName = folder.listFiles()[i].getName();
             Path resouceLocation = Paths.get(uploadPath + File.separator + fileName);
-            OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM);
+            OntModel model = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM_RDFS_INF);
             model.read(resouceLocation.toString());
             if (Objects.equals("class", objectType)) {
                 var classes = model.listClasses().toList();
@@ -103,7 +103,7 @@ public class OntologyController {
                     }
                 }
             } else {
-                var properties = model.listAllOntProperties().toList();
+                var properties = model.listOntProperties().toList();
                 for (var item : properties) {
                     if (item.getLocalName().contains(query)) {
                         var ontology = new LocalOntology();
@@ -142,7 +142,12 @@ public class OntologyController {
                     property.setUri(prop.getURI());
                     ontology.addProperties(property);             
                 }
-                localOntologiesData.add(ontology);
+                boolean alreadyExists = localOntologiesData.stream()
+                                .anyMatch(x -> x.getName().equals(item.getLocalName()));                
+                if (!alreadyExists){
+                    localOntologiesData.add(ontology);
+                }
+                
             }
         }
 
