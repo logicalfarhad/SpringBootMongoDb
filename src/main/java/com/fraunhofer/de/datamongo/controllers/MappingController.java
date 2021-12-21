@@ -98,7 +98,7 @@ public class MappingController {
         }
     }
 
-    @PostMapping(value = "/editById/{Id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    /* @PostMapping(value = "/editById/{Id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Mapping> updateMapping(@PathVariable("Id") String Id, @RequestBody Mapping mapping) {
         var mappingData = _mappingMongoRepository.findById(Id);
 
@@ -115,6 +115,27 @@ public class MappingController {
 
             return new ResponseEntity<>(_mappingMongoRepository.save(_mapping), HttpStatus.OK);
         }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    } */
+
+    @PostMapping(value = "/editById/{Id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Mapping> updateMapping(@PathVariable("Id") String Id, @RequestBody Mapping[] finalMappingData) {
+        /* var mappingData = _mappingMongoRepository.findById(Id);
+
+        if (mappingData.isPresent()) {
+            var _mapping = mappingData.get();
+            _mapping.setEntity(!Objects.equals(mapping.getEntity(), "") ? mapping.getEntity() : "");
+            _mapping.setType(!Objects.equals(mapping.getType(), "") ? mapping.getType() : "");
+            _mapping.setSource(!Objects.equals(mapping.getSource(), "") ? mapping.getSource() : "");
+            _mapping.setKey(!Objects.equals(mapping.getKey(), "") ? mapping.getKey() : "");
+            _mapping.setOptions(mapping.getOptions() == null ? null : mapping.getOptions());
+            _mapping.setClas(mapping.getClas() == null ? null : mapping.getClas());
+            _mapping.setProlog(mapping.getProlog() == null ? null : mapping.getProlog());
+            _mapping.setPropertiesMap(mapping.getPropertiesMap() == null ? null : mapping.getPropertiesMap());
+
+            return new ResponseEntity<>(_mappingMongoRepository.save(_mapping), HttpStatus.OK);
+        } */
+        System.out.println(finalMappingData[0].getClas());
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
