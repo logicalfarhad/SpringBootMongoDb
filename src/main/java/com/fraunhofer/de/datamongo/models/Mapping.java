@@ -6,9 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
-
-import java.util.HashMap;
+import java.util.List;
 
 
 @Getter
@@ -16,16 +14,12 @@ import java.util.HashMap;
 @AllArgsConstructor
 @NoArgsConstructor
 @Document(collection = "mapping")
-public class Mapping {
+public class Mapping{
     @Id
     private String _id;
     private String entity;
     private String type;
     private String source;
-    private String key;
     private Option options;
-    @Field("class")
-    private String clas;
-    private HashMap<String,String> prolog;
-    private HashMap<String,String> propertiesMap;
+    private List<Setting> settingList;
 }

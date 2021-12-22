@@ -1,7 +1,7 @@
 package com.fraunhofer.de.datamongo.controllers;
 
 import com.fraunhofer.de.datamongo.models.Mapping;
-import com.fraunhofer.de.datamongo.models.Repo;
+import com.fraunhofer.de.datamongo.models.VocolInfo;
 import com.fraunhofer.de.datamongo.models.Schema;
 import com.fraunhofer.de.datamongo.repositories.MappingMongoRepository;
 import io.swagger.annotations.Api;
@@ -18,9 +18,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
 
 @RestController
 @Api(value = "/api")
@@ -29,12 +26,12 @@ public class MappingController {
 
     private final MappingMongoRepository _mappingMongoRepository;
 
-    private final Repo repo;
+    private final VocolInfo vocolInfo;
 
     @Autowired
     public MappingController(final MappingMongoRepository mappingMongoRepository) {
         this._mappingMongoRepository = mappingMongoRepository;
-        this.repo = new Repo();
+        this.vocolInfo = new VocolInfo();
     }
 
     @ApiOperation(value = "getAll", notes = "Get all the mapping configuration", nickname = "getGreeting")
@@ -52,16 +49,12 @@ public class MappingController {
         if (_mapping.isPresent()) {
             var mapping = _mapping.get();
             var schema = new Schema();
-            schema.setType(mapping.getType());
-            schema.setEntity(mapping.getEntity());
-            schema.setOptions(mapping.getOptions());
-            schema.setClas(mapping.getClas());
-            schema.setPropertiesMap(mapping.getPropertiesMap());
-            schema.setProlog(mapping.getProlog());
-            schema.setKey(mapping.getKey());
-            schema.setSource(mapping.getSource());
             schema.set_id(mapping.get_id());
-
+            schema.setEntity(mapping.getEntity());
+            schema.setType(mapping.getType());
+            schema.setSource(mapping.getSource());
+            schema.setOptions(mapping.getOptions());
+            schema.setSettingList(mapping.getSettingList());
             BufferedReader reader;
             try {
                 reader = new BufferedReader(new FileReader(mapping.getSource()));
@@ -79,7 +72,7 @@ public class MappingController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping(value = "/save", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/save")
     public ResponseEntity<Mapping> createMapping(@RequestBody Mapping mapping) {
         try {
             var _mapping = _mappingMongoRepository
@@ -87,55 +80,27 @@ public class MappingController {
                             mapping.getEntity(),
                             mapping.getType(),
                             mapping.getSource(),
-                            mapping.getKey(),
                             mapping.getOptions(),
-                            mapping.getClas(),
-                            mapping.getProlog(),
-                            mapping.getPropertiesMap()));
+                            mapping.getSettingList()
+                            ));
             return new ResponseEntity<>(_mapping, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    /* @PostMapping(value = "/editById/{Id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/editById/{Id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Mapping> updateMapping(@PathVariable("Id") String Id, @RequestBody Mapping mapping) {
         var mappingData = _mappingMongoRepository.findById(Id);
-
         if (mappingData.isPresent()) {
             var _mapping = mappingData.get();
             _mapping.setEntity(!Objects.equals(mapping.getEntity(), "") ? mapping.getEntity() : "");
             _mapping.setType(!Objects.equals(mapping.getType(), "") ? mapping.getType() : "");
             _mapping.setSource(!Objects.equals(mapping.getSource(), "") ? mapping.getSource() : "");
-            _mapping.setKey(!Objects.equals(mapping.getKey(), "") ? mapping.getKey() : "");
             _mapping.setOptions(mapping.getOptions() == null ? null : mapping.getOptions());
-            _mapping.setClas(mapping.getClas() == null ? null : mapping.getClas());
-            _mapping.setProlog(mapping.getProlog() == null ? null : mapping.getProlog());
-            _mapping.setPropertiesMap(mapping.getPropertiesMap() == null ? null : mapping.getPropertiesMap());
-
+            _mapping.setSettingList(mapping.getSettingList()==null?null:mapping.getSettingList());
             return new ResponseEntity<>(_mappingMongoRepository.save(_mapping), HttpStatus.OK);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    } */
-
-    @PostMapping(value = "/editById/{Id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Mapping> updateMapping(@PathVariable("Id") String Id, @RequestBody Mapping[] finalMappingData) {
-        /* var mappingData = _mappingMongoRepository.findById(Id);
-
-        if (mappingData.isPresent()) {
-            var _mapping = mappingData.get();
-            _mapping.setEntity(!Objects.equals(mapping.getEntity(), "") ? mapping.getEntity() : "");
-            _mapping.setType(!Objects.equals(mapping.getType(), "") ? mapping.getType() : "");
-            _mapping.setSource(!Objects.equals(mapping.getSource(), "") ? mapping.getSource() : "");
-            _mapping.setKey(!Objects.equals(mapping.getKey(), "") ? mapping.getKey() : "");
-            _mapping.setOptions(mapping.getOptions() == null ? null : mapping.getOptions());
-            _mapping.setClas(mapping.getClas() == null ? null : mapping.getClas());
-            _mapping.setProlog(mapping.getProlog() == null ? null : mapping.getProlog());
-            _mapping.setPropertiesMap(mapping.getPropertiesMap() == null ? null : mapping.getPropertiesMap());
-
-            return new ResponseEntity<>(_mappingMongoRepository.save(_mapping), HttpStatus.OK);
-        } */
-        System.out.println(finalMappingData[0].getClas());
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
@@ -168,19 +133,19 @@ public class MappingController {
     public ResponseEntity<Boolean> setVocolBranch(@RequestParam("branchName") String branchName,
                                                      @RequestParam("instanceName") String instanceName) {
         if (!branchName.isEmpty() && !instanceName.isEmpty()) {
-            repo.setBranchName(branchName);
-            repo.setInstanceName(instanceName);
+            vocolInfo.setBranchName(branchName);
+            vocolInfo.setInstanceName(instanceName);
             return new ResponseEntity<>(true,HttpStatus.OK);
         }
         return new ResponseEntity<>(false,HttpStatus.NO_CONTENT);
 
     }
     @GetMapping(value = "/getMapping", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Repo> generateMapping() {
+    public ResponseEntity<VocolInfo> generateMapping() {
 
         final var rmltext = new StringBuilder();
         var mappingList = _mappingMongoRepository.findAll();
-
+/*
         AtomicBoolean isNull = new AtomicBoolean(false);
 
         mappingList.forEach(item -> {
@@ -238,9 +203,9 @@ public class MappingController {
                 rmltext.insert(0, "@base <http://example.com/ns#>.\n");
             }
             csvList.add(mappingList.get(i).getSource());
-        });
-        repo.setCsvFileList(csvList);
-        repo.setRmlText(rmltext.toString());
-        return new ResponseEntity<>(repo, HttpStatus.CREATED);
+        });*/
+      //  repo.setCsvFileList(csvList);
+       // repo.setRmlText(rmltext.toString());
+        return new ResponseEntity<>(vocolInfo, HttpStatus.CREATED);
     }
 }
