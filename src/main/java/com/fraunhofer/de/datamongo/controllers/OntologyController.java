@@ -1,20 +1,19 @@
 package com.fraunhofer.de.datamongo.controllers;
 
+import com.fraunhofer.de.datamongo.models.LocalOntology;
+import com.fraunhofer.de.datamongo.models.OntologyFileData;
+import com.fraunhofer.de.datamongo.services.FileService;
+import org.apache.jena.ontology.OntClass;
+import org.apache.jena.ontology.OntModel;
+import org.apache.jena.ontology.OntModelSpec;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -29,26 +28,18 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.fraunhofer.de.datamongo.models.LocalOntology;
-import com.fraunhofer.de.datamongo.models.OntologyFileData;
-import com.fraunhofer.de.datamongo.services.FileService;
-
-import org.apache.jena.ontology.DatatypeProperty;
-import org.apache.jena.ontology.OntClass;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.ontology.OntProperty;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.riot.RDFDataMgr;
-
 @RestController
 @RequestMapping("/api/ontology")
 public class OntologyController {
-    @Autowired
-    FileService fileService;
+    private final FileService fileService;
+
     @Value("${upload.path}")
     private String uploadPath;
+
+    @Autowired
+    public OntologyController(FileService fileService) {
+        this.fileService = fileService;
+    }
 
     /*
      * @GetMapping("/getDefault") public Object getOntology() { final String uri =

@@ -17,7 +17,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @RestController
 @Api(value = "/api")
@@ -48,13 +47,14 @@ public class MappingController {
 
         if (_mapping.isPresent()) {
             var mapping = _mapping.get();
-            var schema = new Schema();
-            schema.set_id(mapping.get_id());
-            schema.setEntity(mapping.getEntity());
-            schema.setType(mapping.getType());
-            schema.setSource(mapping.getSource());
-            schema.setOptions(mapping.getOptions());
-            schema.setSettingList(mapping.getSettingList());
+            var schema = Schema.SchemaBuilder()
+                    ._id(mapping.get_id())
+                    .entity(mapping.getEntity())
+                    .type(mapping.getType())
+                    .source(mapping.getSource())
+                    .options(mapping.getOptions())
+                    .settingList(mapping.getSettingList())
+                    .build();
             BufferedReader reader;
             try {
                 reader = new BufferedReader(new FileReader(mapping.getSource()));
@@ -75,14 +75,15 @@ public class MappingController {
     @PostMapping(value = "/save")
     public ResponseEntity<Mapping> createMapping(@RequestBody Mapping mapping) {
         try {
+
             var _mapping = _mappingMongoRepository
-                    .save(new Mapping(mapping.get_id(),
-                            mapping.getEntity(),
-                            mapping.getType(),
-                            mapping.getSource(),
-                            mapping.getOptions(),
-                            mapping.getSettingList()
-                    ));
+                    .save(Mapping.builder().
+                            _id(mapping.get_id())
+                            .entity(mapping.getEntity())
+                            .source(mapping.getSource())
+                            .options(mapping.getOptions())
+                            .settingList(mapping.getSettingList())
+                            .build());
             return new ResponseEntity<>(_mapping, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -94,11 +95,11 @@ public class MappingController {
         var mappingData = _mappingMongoRepository.findById(Id);
         if (mappingData.isPresent()) {
             var _mapping = mappingData.get();
-            _mapping.setEntity(!Objects.equals(mapping.getEntity(), "") ? mapping.getEntity() : "");
-            _mapping.setType(!Objects.equals(mapping.getType(), "") ? mapping.getType() : "");
-            _mapping.setSource(!Objects.equals(mapping.getSource(), "") ? mapping.getSource() : "");
-            _mapping.setOptions(mapping.getOptions() == null ? null : mapping.getOptions());
-            _mapping.setSettingList(mapping.getSettingList() == null ? null : mapping.getSettingList());
+            _mapping.setEntity(mapping.getEntity());
+            _mapping.setType(mapping.getType());
+            _mapping.setSource(mapping.getSource());
+            _mapping.setOptions(mapping.getOptions());
+            _mapping.setSettingList(mapping.getSettingList());
             return new ResponseEntity<>(_mappingMongoRepository.save(_mapping), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);

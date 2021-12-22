@@ -1,20 +1,21 @@
 package com.fraunhofer.de.datamongo.models;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.util.List;
 
 
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Document(collection = "mapping")
-public class Mapping{
+@Builder
+public class Mapping {
     @Id
     private String _id;
     private String entity;
