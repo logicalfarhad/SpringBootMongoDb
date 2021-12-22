@@ -1,8 +1,8 @@
 package com.fraunhofer.de.datamongo.controllers;
 
 import com.fraunhofer.de.datamongo.models.Mapping;
-import com.fraunhofer.de.datamongo.models.VocolInfo;
 import com.fraunhofer.de.datamongo.models.Schema;
+import com.fraunhofer.de.datamongo.models.VocolInfo;
 import com.fraunhofer.de.datamongo.repositories.MappingMongoRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -82,7 +82,7 @@ public class MappingController {
                             mapping.getSource(),
                             mapping.getOptions(),
                             mapping.getSettingList()
-                            ));
+                    ));
             return new ResponseEntity<>(_mapping, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -98,7 +98,7 @@ public class MappingController {
             _mapping.setType(!Objects.equals(mapping.getType(), "") ? mapping.getType() : "");
             _mapping.setSource(!Objects.equals(mapping.getSource(), "") ? mapping.getSource() : "");
             _mapping.setOptions(mapping.getOptions() == null ? null : mapping.getOptions());
-            _mapping.setSettingList(mapping.getSettingList()==null?null:mapping.getSettingList());
+            _mapping.setSettingList(mapping.getSettingList() == null ? null : mapping.getSettingList());
             return new ResponseEntity<>(_mappingMongoRepository.save(_mapping), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -131,15 +131,16 @@ public class MappingController {
 
     @GetMapping(value = "/saveMapping", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Boolean> setVocolBranch(@RequestParam("branchName") String branchName,
-                                                     @RequestParam("instanceName") String instanceName) {
+                                                  @RequestParam("instanceName") String instanceName) {
         if (!branchName.isEmpty() && !instanceName.isEmpty()) {
             vocolInfo.setBranchName(branchName);
             vocolInfo.setInstanceName(instanceName);
-            return new ResponseEntity<>(true,HttpStatus.OK);
+            return new ResponseEntity<>(true, HttpStatus.OK);
         }
-        return new ResponseEntity<>(false,HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(false, HttpStatus.NO_CONTENT);
 
     }
+
     @GetMapping(value = "/getMapping", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<VocolInfo> generateMapping() {
 
@@ -204,8 +205,8 @@ public class MappingController {
             }
             csvList.add(mappingList.get(i).getSource());
         });*/
-      //  repo.setCsvFileList(csvList);
-       // repo.setRmlText(rmltext.toString());
+        //  repo.setCsvFileList(csvList);
+        // repo.setRmlText(rmltext.toString());
         return new ResponseEntity<>(vocolInfo, HttpStatus.CREATED);
     }
 }
