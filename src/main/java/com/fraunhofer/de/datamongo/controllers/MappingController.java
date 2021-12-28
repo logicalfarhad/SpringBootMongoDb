@@ -2,6 +2,7 @@ package com.fraunhofer.de.datamongo.controllers;
 
 import com.fraunhofer.de.datamongo.models.Mapping;
 import com.fraunhofer.de.datamongo.models.Schema;
+import com.fraunhofer.de.datamongo.models.Setting;
 import com.fraunhofer.de.datamongo.models.VocolInfo;
 import com.fraunhofer.de.datamongo.repositories.MappingMongoRepository;
 import io.swagger.annotations.Api;
@@ -16,7 +17,10 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @RestController
 @Api(value = "/api")
@@ -80,6 +84,7 @@ public class MappingController {
                     .save(Mapping.builder().
                             _id(mapping.get_id())
                             .entity(mapping.getEntity())
+                            .type(mapping.getType())
                             .source(mapping.getSource())
                             .options(mapping.getOptions())
                             .settingList(mapping.getSettingList())
@@ -145,14 +150,15 @@ public class MappingController {
     @GetMapping(value = "/getMapping", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<VocolInfo> generateMapping() {
 
+        var prologMap = new HashMap<>();
         final var rmltext = new StringBuilder();
         var mappingList = _mappingMongoRepository.findAll();
-/*
+
         AtomicBoolean isNull = new AtomicBoolean(false);
 
         mappingList.forEach(item -> {
-            var propertiesMap = item.getPropertiesMap();
-            if (propertiesMap == null) {
+            var settingList = item.getSettingList();
+            if (settingList == null) {
                 isNull.set(true);
             }
         });
@@ -160,54 +166,53 @@ public class MappingController {
             return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
         }
         final List<String> csvList = new ArrayList<>();
-
         AtomicInteger counter = new AtomicInteger();
-        IntStream.range(0, mappingList.size()).forEachOrdered(i -> {
-            rmltext.append("\n\n<#").append(mappingList.get(i).getEntity()).append("Mapping> a rr:TriplesMap;");
-            rmltext.append("\n\trml:logicalSource [");
-            rmltext.append("\n\t\trml:source \"").append(mappingList.get(i).getSource()).append("\";");
-            rmltext.append("\n\t\trml:referenceFormulation ql:").append(mappingList.get(i).getType().toUpperCase());
-            rmltext.append("\n\t];");
-            rmltext.append("\n\trr:subjectMap [");
-            rmltext.append("\n\t\trr:template \"http://example.com/{").append(mappingList.get(i).getKey()).append("}\";");
-            if (!Objects.equals(mappingList.get(i).getClas(), "")) {
-                rmltext.append("\n\t\trr:class ");
-                rmltext.append(mappingList.get(i).getClas());
-            } else {
-                rmltext.append("\n\t\trr:class ()");
-            }
-            rmltext.append("\n\t];\n");
-            mappingList.get(i).getPropertiesMap().forEach((key, value) -> {
-                counter.getAndIncrement();
-                rmltext.append("\n\trr:predicateObjectMap [");
-                rmltext.append("\n\t\trr:predicate ").append(key.replace('.', '_')).append(";");
-                if (counter.get() < mappingList.get(i).getPropertiesMap().size()) {
-                    rmltext.append("\n\t\trr:objectMap [rml:reference ")
-                            .append("\"")
-                            .append(value)
-                            .append("\"")
-                            .append("]];");
-                } else {
-                    rmltext.append("\n\t\trr:objectMap [rml:reference ")
-                            .append("\"")
-                            .append(value)
-                            .append("\"")
-                            .append("]].");
-                }
-            });
-            mappingList.get(i).getProlog()
-                    .forEach((key, value)
-                            -> rmltext.insert(0, "@prefix " + key + ": <" + value + ">.\n"));
 
-            if (mappingList.get(i).getProlog().size() == 1) {
-                rmltext.insert(0, "@base <http://example.com/ns#>.\n");
-            } else if (i < mappingList.get(i).getProlog().size() - 1) {
-                rmltext.insert(0, "@base <http://example.com/ns#>.\n");
+        int totalCount = 0;
+        for (Mapping mapping : mappingList) {
+            var settingList = mapping.getSettingList();
+            for (Setting setting : settingList) {
+                totalCount++;
+                rmltext.append("\n\n<#").append("Mapping").append(totalCount).append("> a rr:TriplesMap;");
+                rmltext.append("\n\trml:logicalSource [");
+                rmltext.append("\n\t\trml:source \"").append(mapping.getSource()).append("\";");
+                rmltext.append("\n\t\trml:referenceFormulation ql:").append(mapping.getType().toUpperCase());
+                rmltext.append("\n\t];");
+                rmltext.append("\n\trr:subjectMap [");
+                rmltext.append("\n\t\trr:template \"http://example.com/{").append(setting.getKey()).append("}\";");
+                rmltext.append("\n\t\trr:class ").append(setting.getKlass());
+                rmltext.append("\n\t];\n");
+                setting.getPropertiesList().forEach((key, value) -> {
+                    counter.getAndIncrement();
+                    rmltext.append("\n\trr:predicateObjectMap [");
+                    rmltext.append("\n\t\trr:predicate ").append(key.replace('.', '_')).append(";");
+
+                    rmltext.append("\n\t\trr:objectMap [rml:reference ")
+                            .append("\"")
+                            .append(value)
+                            .append("\"")
+                            .append("]");
+                    rmltext.append(counter.get() < setting.getPropertiesList().size() ? "\n\t];\n" : "\n\t].\n");
+
+
+                });
+                counter.set(0);
+                prologMap.putAll(setting.getPrologList());
+                prologMap.put("base", "http://example.com/ns#");
             }
-            csvList.add(mappingList.get(i).getSource());
-        });*/
-        //  repo.setCsvFileList(csvList);
-        // repo.setRmlText(rmltext.toString());
+            csvList.add(mapping.getSource());
+        }
+
+
+        prologMap.forEach((key, val) -> {
+            if (key == "base")
+                rmltext.insert(0, "@" + key + " <" + val + ">.\n");
+            else {
+                rmltext.insert(0, "@prefix " + key + ": <" + val + ">.\n");
+            }
+        });
+        vocolInfo.setCsvFileList(csvList);
+        vocolInfo.setRmlText(rmltext.toString());
         return new ResponseEntity<>(vocolInfo, HttpStatus.CREATED);
     }
 }
