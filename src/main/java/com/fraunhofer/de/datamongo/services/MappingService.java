@@ -7,7 +7,6 @@ import com.fraunhofer.de.datamongo.models.Setting;
 import com.fraunhofer.de.datamongo.models.VocolInfo;
 import com.fraunhofer.de.datamongo.repositories.MappingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -109,8 +108,6 @@ public class MappingService implements IMappingService {
 
     @Override
     public VocolInfo generateMapping() {
-
-        VocolInfo vocolInfo = new VocolInfo();
         var prologMap = new HashMap<>();
         final var rmltext = new StringBuilder();
         var mappingList = getAllMapping();

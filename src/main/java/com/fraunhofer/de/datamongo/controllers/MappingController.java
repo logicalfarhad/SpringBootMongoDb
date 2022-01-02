@@ -81,7 +81,7 @@ public class MappingController {
         }
     }
 
-    @GetMapping(value = "/saveMapping", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/setVocolInfo", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Boolean> setVocolBranch(@RequestParam("branchName") String branchName,
                                                   @RequestParam("instanceName") String instanceName) {
         if (!branchName.isEmpty() && !instanceName.isEmpty()) {
