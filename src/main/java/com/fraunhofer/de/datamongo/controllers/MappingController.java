@@ -41,7 +41,7 @@ public class MappingController {
     }
 
     @PostMapping(value = "/save")
-    public ResponseEntity<Mapping> createMapping(Mapping mapping) {
+    public ResponseEntity<Mapping> createMapping(@RequestBody Mapping mapping) {
         try {
             var _mapping = mappingService.save(mapping);
             return new ResponseEntity<>(_mapping, HttpStatus.CREATED);
