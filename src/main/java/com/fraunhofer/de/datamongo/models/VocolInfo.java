@@ -9,4 +9,6 @@ public class VocolInfo {
     private String rmlText;
     private String branchName;
     private String instanceName;
+    private String username;
+    private String secretKey;
 }

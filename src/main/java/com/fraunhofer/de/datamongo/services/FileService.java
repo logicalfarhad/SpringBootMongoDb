@@ -46,7 +46,6 @@ public class FileService {
             Path copyLocation = Paths
                     .get(uploadPath + File.separator + StringUtils.cleanPath(file.getOriginalFilename()));
             Files.copy(file.getInputStream(), copyLocation, StandardCopyOption.REPLACE_EXISTING);
-            System.out.println(copyLocation.toString());
         } catch (Exception e) {
             e.printStackTrace();
             throw new FileStorageException(

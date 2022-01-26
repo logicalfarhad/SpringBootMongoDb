@@ -23,5 +23,5 @@ public interface IMappingService {
 
     VocolInfo generateMapping();
 
-    void setVocolInfo(String branchName, String instanceName);
+    void setVocolInfo(VocolInfo vocolInfo);
 }

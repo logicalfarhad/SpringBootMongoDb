@@ -8,7 +8,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,13 +26,13 @@ public class MappingController {
     }
 
     @ApiOperation(value = "getAll", notes = "Get all the mapping configuration", nickname = "getGreeting")
-    @GetMapping(value = "/getAll", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/getAll")
     public ResponseEntity<List<Mapping>> getAllMapping() {
         var mappingList = mappingService.getAllMapping();
         return new ResponseEntity<>(mappingList, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/getById/{Id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/getById/{Id}")
     public ResponseEntity<Schema> getMappingById(@PathVariable("Id") String Id) {
         var schema = mappingService.getSchemaById(Id);
         if (schema != null)
@@ -42,7 +41,7 @@ public class MappingController {
     }
 
     @PostMapping(value = "/save")
-    public ResponseEntity<Mapping> createMapping(@RequestBody Mapping mapping) {
+    public ResponseEntity<Mapping> createMapping(Mapping mapping) {
         try {
             var _mapping = mappingService.save(mapping);
             return new ResponseEntity<>(_mapping, HttpStatus.CREATED);
@@ -51,7 +50,7 @@ public class MappingController {
         }
     }
 
-    @PostMapping(value = "/editById/{Id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/editById/{Id}")
     public ResponseEntity<Mapping> updateMapping(@PathVariable("Id") String Id, @RequestBody Mapping mapping) {
         var _mapping = mappingService.update(Id, mapping);
         try {
@@ -61,7 +60,7 @@ public class MappingController {
         }
     }
 
-    @PostMapping(value = "/deleteAll", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping("/deleteAll")
     public ResponseEntity<HttpStatus> deleteAllMapping() {
         try {
             mappingService.deleteAll();
@@ -71,7 +70,7 @@ public class MappingController {
         }
     }
 
-    @PostMapping(value = "/deleteById/{Id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping("/deleteById/{Id}")
     public ResponseEntity<HttpStatus> deleteMappingById(@PathVariable("Id") String Id) {
         try {
             mappingService.deleteById(Id);
@@ -81,17 +80,13 @@ public class MappingController {
         }
     }
 
-    @GetMapping(value = "/setVocolInfo", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Boolean> setVocolBranch(@RequestParam("branchName") String branchName,
-                                                  @RequestParam("instanceName") String instanceName) {
-        if (!branchName.isEmpty() && !instanceName.isEmpty()) {
-            mappingService.setVocolInfo(branchName, instanceName);
-            return new ResponseEntity<>(true, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(false, HttpStatus.NO_CONTENT);
+    @PostMapping("/setVocolInfo")
+    public ResponseEntity<Boolean> setVocolBranch(@RequestBody VocolInfo vocolInfo) {
+        mappingService.setVocolInfo(vocolInfo);
+        return new ResponseEntity<>(true, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/getMapping", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/getMapping")
     public ResponseEntity<VocolInfo> generateMapping() {
         var vocolInfo = mappingService.generateMapping();
         if (vocolInfo == null)

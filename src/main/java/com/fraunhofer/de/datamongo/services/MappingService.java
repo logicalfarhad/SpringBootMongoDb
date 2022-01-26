@@ -174,8 +174,16 @@ public class MappingService implements IMappingService {
     }
 
     @Override
-    public void setVocolInfo(String branchName, String instanceName) {
-        vocolInfo.setBranchName(branchName);
-        vocolInfo.setInstanceName(instanceName);
+    public void setVocolInfo(VocolInfo _vocolInfo) {
+        if (_vocolInfo.getBranchName() != null)
+            vocolInfo.setBranchName(_vocolInfo.getBranchName());
+        if (_vocolInfo.getInstanceName() != null)
+            vocolInfo.setInstanceName(_vocolInfo.getInstanceName());
+        if (_vocolInfo.getCsvFileList() != null)
+            vocolInfo.setCsvFileList(_vocolInfo.getCsvFileList());
+        if (_vocolInfo.getUsername() != null)
+            vocolInfo.setUsername(_vocolInfo.getUsername());
+        if (_vocolInfo.getSecretKey() != null)
+            vocolInfo.setSecretKey(_vocolInfo.getSecretKey());
     }
 }
