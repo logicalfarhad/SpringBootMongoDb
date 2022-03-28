@@ -6,12 +6,13 @@ import com.fraunhofer.de.datamongo.models.Schema;
 import com.fraunhofer.de.datamongo.models.Setting;
 import com.fraunhofer.de.datamongo.models.VocolInfo;
 import com.fraunhofer.de.datamongo.repositories.MappingRepository;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,11 +24,15 @@ public class MappingService implements IMappingService {
 
     private final MappingRepository mappingRepository;
 
-    private final VocolInfo vocolInfo;
+    @Value("${source.path}")
+    private String sourcePath;
 
+    private final VocolInfo vocolInfo;
+    private final FileService fileService;
     @Autowired
-    public MappingService(final MappingRepository mappingRepository) {
+    public MappingService(final MappingRepository mappingRepository,final FileService _fileService) {
         this.mappingRepository = mappingRepository;
+        this.fileService = _fileService;
         this.vocolInfo = new VocolInfo();
     }
 
@@ -75,9 +80,12 @@ public class MappingService implements IMappingService {
     }
 
 
+    @SneakyThrows
     @Override
     public Schema getSchemaById(String Id) {
         var mapping = getMappingById(Id);
+
+        var fileName = mapping.getSource();
         var schema = Schema.SchemaBuilder()
                 ._id(mapping.get_id())
                 .entity(mapping.getEntity())
@@ -86,17 +94,18 @@ public class MappingService implements IMappingService {
                 .options(mapping.getOptions())
                 .settingList(mapping.getSettingList())
                 .build();
-        BufferedReader reader;
-        try {
-            reader = new BufferedReader(new FileReader(mapping.getSource()));
-            List<String> lines = new ArrayList<>();
-            String line;
-            while ((line = reader.readLine()) != null)
-                lines.add(line);
-            reader.close();
-            schema.setColumns(lines.get(0));
-        } catch (IOException e) {
-            e.printStackTrace();
+
+        try (InputStream inputStream = fileService.getFileByName(fileName).getInputStream()) {
+
+            try(BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+
+                List<String> lines = new ArrayList<>();
+                String line;
+                while ((line = bufferedReader.readLine()) != null)
+                    lines.add(line);
+                bufferedReader.close();
+                schema.setColumns(lines.get(0));
+            }
         }
         return schema;
     }
@@ -129,11 +138,13 @@ public class MappingService implements IMappingService {
         int totalCount = 0;
         for (Mapping mapping : mappingList) {
             var settingList = mapping.getSettingList();
+            String changedSource = sourcePath +File.separator+mapping.getSource();
             for (Setting setting : settingList) {
+
                 totalCount++;
                 rmltext.append("\n\n<#").append("Mapping").append(totalCount).append("> a rr:TriplesMap;");
                 rmltext.append("\n\trml:logicalSource [");
-                rmltext.append("\n\t\trml:source \"").append(mapping.getSource()).append("\";");
+                rmltext.append("\n\t\trml:source \"").append(changedSource).append("\";");
                 rmltext.append("\n\t\trml:referenceFormulation ql:").append(mapping.getType().toUpperCase());
                 rmltext.append("\n\t];");
                 rmltext.append("\n\trr:subjectMap [");

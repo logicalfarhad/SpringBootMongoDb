@@ -28,6 +28,9 @@ public class FileService {
     @Value("${upload.path}")
     private String uploadPath;
 
+    @Value("${source.path}")
+    private String sourcePath;
+
     @PostConstruct
     public void init() {
         try {
@@ -86,8 +89,21 @@ public class FileService {
 
     public Resource load(String filename) {
         try {
-            System.out.println(filename);
             Path file = Paths.get(uploadPath).resolve(filename);
+            Resource resource = new UrlResource(file.toUri());
+            if (resource.exists() || resource.isReadable()) {
+                return resource;
+            } else {
+                throw new RuntimeException("Could not read the file!");
+            }
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Error: " + e.getMessage());
+        }
+    }
+
+    public Resource getFileByName(String fileName){
+        try {
+            Path file = Paths.get(sourcePath).resolve(fileName);
             Resource resource = new UrlResource(file.toUri());
 
             if (resource.exists() || resource.isReadable()) {
@@ -97,6 +113,27 @@ public class FileService {
             }
         } catch (MalformedURLException e) {
             throw new RuntimeException("Error: " + e.getMessage());
+        }
+    }
+
+    public boolean isOntologyFile(String fileName) {
+        var fileExtension = fileName.split("\\.")[1];
+        return !fileExtension.equalsIgnoreCase("csv");
+    }
+
+    public void uploadSourceFile(MultipartFile file) {
+        System.out.println(file.getOriginalFilename());
+        System.out.println(sourcePath);
+        try {
+            Path copyLocation = Paths
+                    .get(sourcePath + File.separator + StringUtils.cleanPath(file.getOriginalFilename()));
+            Files.copy(file.getInputStream(), copyLocation, StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+            throw new FileStorageException(
+                    "Could not store file " + file.getOriginalFilename() + ". Please try again!");
+
         }
     }
 }

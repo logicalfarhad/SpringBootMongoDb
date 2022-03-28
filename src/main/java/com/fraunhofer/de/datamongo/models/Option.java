@@ -8,5 +8,4 @@ import lombok.NoArgsConstructor;
 public class Option {
     private String delimiter;
     private String header;
-    private String mode;
 }

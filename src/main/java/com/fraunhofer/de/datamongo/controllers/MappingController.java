@@ -1,8 +1,8 @@
 package com.fraunhofer.de.datamongo.controllers;
 
 import com.fraunhofer.de.datamongo.models.Mapping;
-import com.fraunhofer.de.datamongo.models.Schema;
-import com.fraunhofer.de.datamongo.models.VocolInfo;
+import com.fraunhofer.de.datamongo.models.*;
+import com.fraunhofer.de.datamongo.services.FileService;
 import com.fraunhofer.de.datamongo.services.IMappingService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -19,10 +18,12 @@ import java.util.List;
 public class MappingController {
 
     private final IMappingService mappingService;
+    private final FileService fileService;
 
     @Autowired
-    public MappingController(final IMappingService mappingService) {
+    public MappingController(final IMappingService mappingService, final FileService _fileService) {
         this.mappingService = mappingService;
+        this.fileService = _fileService;
     }
 
     @ApiOperation(value = "getAll", notes = "Get all the mapping configuration", nickname = "getGreeting")
@@ -40,10 +41,24 @@ public class MappingController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping(value = "/save")
-    public ResponseEntity<Mapping> createMapping(@RequestBody Mapping mapping) {
+    @PostMapping(value = "/save", consumes = "multipart/form-data")
+    public ResponseEntity<Mapping> createMapping(@ModelAttribute MappingDTO mappingDTO
+    ) {
         try {
-            var _mapping = mappingService.save(mapping);
+            var _mapping = new Mapping();
+            _mapping.setEntity(mappingDTO.getEntity());
+            _mapping.setType(mappingDTO.getType());
+
+            var option = new Option();
+
+            option.setDelimiter(mappingDTO.getDelimiter());
+            option.setHeader(mappingDTO.getHeader());
+            _mapping.setOptions(option);
+            String fileName = mappingDTO.getFile().getOriginalFilename();
+            _mapping.setSource(fileName);
+            fileService.uploadSourceFile(mappingDTO.getFile());
+
+            mappingService.save(_mapping);
             return new ResponseEntity<>(_mapping, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

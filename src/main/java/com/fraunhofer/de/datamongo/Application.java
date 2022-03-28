@@ -5,29 +5,21 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
 
 @SpringBootApplication
-public class Application {
+public class Application{
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
-    }
-
-    @Bean
-    ApplicationRunner applicationRunner(Environment environment) {
-        return args -> {
-            System.out.println(environment.getProperty("MONGODB_ENDPOINT"));
-        };
     }
 
     /**
