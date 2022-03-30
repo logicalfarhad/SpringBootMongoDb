@@ -1,10 +1,7 @@
 package com.fraunhofer.de.datamongo.services;
 
 
-import com.fraunhofer.de.datamongo.models.Mapping;
-import com.fraunhofer.de.datamongo.models.Schema;
-import com.fraunhofer.de.datamongo.models.Setting;
-import com.fraunhofer.de.datamongo.models.VocolInfo;
+import com.fraunhofer.de.datamongo.models.*;
 import com.fraunhofer.de.datamongo.repositories.MappingRepository;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -37,8 +35,8 @@ public class MappingService implements IMappingService {
     }
 
     @Override
-    public List<Mapping> getAllMapping() {
-        return mappingRepository.findAll();
+    public List<Mapping> getAllMappingByInstanceName(String instanceName) {
+        return mappingRepository.findByInstanceName(instanceName);
     }
 
     @Override
@@ -50,14 +48,20 @@ public class MappingService implements IMappingService {
     }
 
     @Override
-    public Mapping update(String Id, Mapping mapping) {
+    public Mapping update(String Id, MappingDTO mappingDTO) {
         var _mapping = getMappingById(Id);
-        _mapping.setEntity(mapping.getEntity());
-        _mapping.setType(mapping.getType());
-        _mapping.setSource(mapping.getSource());
-        _mapping.setOptions(mapping.getOptions());
-        _mapping.setSettingList(mapping.getSettingList());
-        return save(_mapping);
+        _mapping.setEntity(mappingDTO.getEntity());
+        _mapping.setType(mappingDTO.getType());
+        _mapping.setInstanceName(mappingDTO.getInstanceName());
+        _mapping.setSettingList(null);
+        _mapping.setOptions(Option.builder()
+                .delimiter(mappingDTO.getDelimiter())
+                .header(mappingDTO.getHeader())
+                .build());
+        String fileName = mappingDTO.getFile().getOriginalFilename();
+        _mapping.setSource(fileName);
+        fileService.uploadSourceFile(mappingDTO.getFile());
+        return mappingRepository.save(_mapping);
     }
 
     @Override
@@ -67,6 +71,7 @@ public class MappingService implements IMappingService {
                         _id(mapping.get_id())
                         .entity(mapping.getEntity())
                         .type(mapping.getType())
+                        .instanceName(mapping.getInstanceName())
                         .source(mapping.getSource())
                         .options(mapping.getOptions())
                         .settingList(mapping.getSettingList())
@@ -90,6 +95,7 @@ public class MappingService implements IMappingService {
                 ._id(mapping.get_id())
                 .entity(mapping.getEntity())
                 .type(mapping.getType())
+                .instanceName(mapping.getInstanceName())
                 .source(mapping.getSource())
                 .options(mapping.getOptions())
                 .settingList(mapping.getSettingList())
@@ -119,7 +125,7 @@ public class MappingService implements IMappingService {
     public VocolInfo generateMapping() {
         var prologMap = new HashMap<>();
         final var rmltext = new StringBuilder();
-        var mappingList = getAllMapping();
+        var mappingList = getAllMappingByInstanceName(vocolInfo.getInstanceName());
 
         AtomicBoolean isNull = new AtomicBoolean(false);
 
@@ -196,5 +202,17 @@ public class MappingService implements IMappingService {
             vocolInfo.setUsername(_vocolInfo.getUsername());
         if (_vocolInfo.getSecretKey() != null)
             vocolInfo.setSecretKey(_vocolInfo.getSecretKey());
+    }
+
+    @Override
+    public VocolInfo getVocolInfo() {
+        return vocolInfo;
+    }
+
+    @Override
+    public Mapping setMappingSettings(Mapping mapping) {
+        var _mapping = getMappingById(mapping.get_id());
+        _mapping.setSettingList(mapping.getSettingList());
+       return mappingRepository.save(_mapping);
     }
 }

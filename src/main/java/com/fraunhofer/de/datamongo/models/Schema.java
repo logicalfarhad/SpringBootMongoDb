@@ -15,11 +15,12 @@ public class Schema extends Mapping {
     private Schema(final String _id,
                    final String entity,
                    final String type,
+                   final String instanceName,
                    final String source,
                    final Option options,
                    final List<Setting> settingList,
                    final String columns) {
-        super(_id, entity, type, source, options, settingList);
+        super(_id, entity, type, instanceName, source, options, settingList);
         this.columns = columns;
     }
 }

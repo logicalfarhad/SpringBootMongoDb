@@ -29,7 +29,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/ontology")
+@RequestMapping("/api")
 public class OntologyController {
     private final FileService fileService;
 
@@ -100,13 +100,12 @@ public class OntologyController {
         return ResponseEntity.status(HttpStatus.OK).body(localOntologiesData);
     }
 
-    @GetMapping("/getOntology")
+    @GetMapping(value="/getOntology")
     public ResponseEntity<List<LocalOntology>> getOntology() {
         List<LocalOntology> localOntologiesData = new ArrayList<LocalOntology>();
         File folder = new File(uploadPath);
         for (int i = 0; i < folder.listFiles().length; i++) {
             String fileName = folder.listFiles()[i].getName();
-             if(fileService.isOntologyFile(fileName)){
                  Path resouceLocation = Paths.get(uploadPath + File.separator + fileName);
                  OntModel model = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM_RDFS_INF);
                  model.read(resouceLocation.toString());
@@ -127,7 +126,7 @@ public class OntologyController {
                          localOntologiesData.add(ontology);
                      }
                  }
-             }
+
         }
 
         return ResponseEntity.status(HttpStatus.OK).body(localOntologiesData);

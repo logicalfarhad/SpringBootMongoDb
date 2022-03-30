@@ -20,6 +20,7 @@ public class Mapping {
     private String _id;
     private String entity;
     private String type;
+    private String instanceName;
     private String source;
     private Option options;
     private List<Setting> settingList;

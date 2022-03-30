@@ -13,7 +13,7 @@ public class MappingDTO {
 
     private String entity;
     private String type;
-
+    private String instanceName;
     private String delimiter;
     private String header;
     private MultipartFile file;
